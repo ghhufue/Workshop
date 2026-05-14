@@ -12,6 +12,8 @@ def test_create_room_adds_first_player() -> None:
 
     assert manager.get_room(room.room_id) is room
     assert player.color == BLACK
+    assert len(room.room_id) == 6
+    assert room.room_id.isdigit()
 
 
 def test_join_room_adds_second_player() -> None:
@@ -30,4 +32,3 @@ def test_get_missing_room_raises() -> None:
 
     with pytest.raises(RoomNotFoundError):
         manager.get_room("missing")
-

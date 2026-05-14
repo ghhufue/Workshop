@@ -1,4 +1,4 @@
-from uuid import uuid4
+import random
 
 from shared.constants import BOARD_SIZE
 from match_server.core.errors import RoomNotFoundError
@@ -11,7 +11,7 @@ class RoomManager:
         self.rooms: dict[str, Room] = {}
 
     def create_room(self, player_name: str, bot_name: str) -> tuple[Room, Player]:
-        room_id = uuid4().hex[:6].upper()
+        room_id = self._generate_room_id()
         room = Room(room_id=room_id, board_size=self.board_size)
         player = room.add_player(player_name, bot_name)
         self.rooms[room_id] = room
@@ -28,3 +28,9 @@ class RoomManager:
         except KeyError as exc:
             raise RoomNotFoundError(f"Room not found: {room_id}") from exc
 
+    def _generate_room_id(self) -> str:
+        for _attempt in range(100):
+            room_id = f"{random.randint(0, 999999):06d}"
+            if room_id not in self.rooms:
+                return room_id
+        raise RuntimeError("Unable to allocate a unique room id")
