@@ -1,0 +1,6 @@
+[submodule "gomoku_ai"]
+	path = gomoku_ai
+	url = https://github.com/ghhufue/gomoku_ai.git
+[submodule "godot_client"]
+	path = godot_client
+	url = https://github.com/ghhufue/3dchess.git
