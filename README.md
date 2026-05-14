@@ -1,8 +1,8 @@
 # 简易五子棋 AI 联机对战系统
 
-这是一个面向 AI Bot 对战的五子棋联机系统。项目的核心目标不是统一 Bot 的内部实现，而是统一 Bot 与平台之间的通信协议。只要 Bot 能通过标准输入和标准输出读写 JSON Lines 消息，它就可以接入系统参与对战。
+这是一个面向 AI Bot 对战和本地模型/逻辑引擎对战的五子棋系统。项目的核心目标不是统一不同落子实现的内部结构，而是统一平台与落子能力之间的边界：平台维护棋盘、回合、校验和 UI；本地落子能力只需要根据棋盘返回下一步坐标。
 
-Bot 可以是规则程序、随机程序、MCTS、神经网络模型推理程序，也可以是 Python、C++、Java、Rust 或其他语言实现的独立进程。
+当前命名上区分 `Bot` 和 `MoveEngine`：`Bot` 特指规则/启发式机器人对手，主要用于人机和模型 vs Bot；`MoveEngine` 泛指能根据棋盘输出落子的本地引擎，可以是规则逻辑、C++ 程序、搜索程序或神经网络推理进程。
 
 ## 总体架构
 
@@ -21,7 +21,7 @@ Local Inference Service
         |
         | stdin / stdout JSON Lines
         v
-Bot Process
+MoveEngine Process
 ```
 
 第一阶段优先实现命令行可运行版本，不包含 Godot 前端。目标是让两个本地 Bot 通过服务器完成一局自动五子棋对战。
@@ -47,31 +47,43 @@ Bot Process
 
 ### Local Inference Service
 
-`local_inference_service` 是本地 Bot 托管服务，对应架构文档中的 Local Bot Runner。
+`local_inference_service` 是本地 MoveEngine 托管服务，对应架构文档中的 Local Bot Runner，但新的命名中它不再只服务 Bot。
 
 它负责：
 
 - 读取本地配置
-- 启动并管理 Bot 子进程
+- 启动并管理 MoveEngine 子进程
 - 连接远程 Match Server
-- 收到 `your_turn` 后把棋盘请求写入 Bot 的 stdin
-- 从 Bot 的 stdout 读取落子响应
-- 校验 Bot 输出格式和基本合法性
+- 收到 `your_turn` 后把棋盘请求写入 MoveEngine 的 stdin
+- 从 MoveEngine 的 stdout 读取落子响应
+- 校验 MoveEngine 输出格式和基本合法性
 - 将合法落子上传给 Match Server
-- 处理 Bot 超时、崩溃或非法输出
+- 处理 MoveEngine 超时、崩溃或非法输出
 
-Local Inference Service 不关心 Bot 内部如何决策，只要求 Bot 遵守约定的 stdin/stdout JSON Lines 协议。
+Local Inference Service 不关心 MoveEngine 内部如何决策，只要求它遵守约定的 stdin/stdout JSON Lines 协议。
 
-### Bot Process
+### MoveEngine Process
 
-Bot 是用户自行实现的独立程序。
+MoveEngine 是用户自行实现的独立程序或脚本。
 
-Bot 只需要遵守两条核心规则：
+MoveEngine 只需要遵守两条核心规则：
 
-- 从 stdin 读取一行 JSON 请求
-- 向 stdout 输出一行 JSON 落子结果
+- 从 stdin 读取一行只包含棋盘的 JSON 请求
+- 向 stdout 输出一行能提取出 `x` 和 `y` 的 JSON 落子结果
 
 调试日志必须写入 stderr，不能写入 stdout。stdout 会被本地服务当作协议数据解析，如果混入日志，会导致 JSON 解析失败。
+
+### Bot
+
+Bot 是玩法语义中的机器人对手，不是底层协议名。
+
+Bot 通常是规则、启发式、随机或搜索逻辑，用于：
+
+- Human vs Bot
+- Model vs Bot
+- Bot vs Bot
+
+Bot 的落子可以由 MoveEngine 驱动，但 Bot 不等同于 MoveEngine。神经网络模型推理、外部 C++ 逻辑进程、训练策略评估等通用落子能力应称为 MoveEngine。
 
 ### Godot Client
 
@@ -132,9 +144,74 @@ y = 纵坐标，范围 0 到 14
 - `game_over`
 - `error`
 
-第二层是 Local Inference Service 与 Bot Process 之间的 stdin/stdout JSON Lines 协议。
+第二层是 Local Inference Service 与 MoveEngine Process 之间的 stdin/stdout JSON Lines 协议。
 
-当轮到某个 Bot 落子时，本地服务会向 Bot stdin 写入一行 `request_move` JSON。Bot 需要在时间限制内向 stdout 输出一行 `move` JSON。
+当轮到某个本地引擎落子时，本地服务会向 MoveEngine stdin 写入一行极简 JSON。MoveEngine 只接收当前棋盘，不需要维护平台棋盘状态、房间、回合、历史或 request_id。
+
+MoveEngine 输入：
+
+```json
+{
+  "board": [
+    [0, 0, 0],
+    [0, 1, 0],
+    [0, -1, 0]
+  ]
+}
+```
+
+棋盘值从引擎视角解释：
+
+```text
+0  = 空位
+1  = 我方棋子
+-1 = 敌方棋子
+```
+
+MoveEngine 输出可以很宽松，最小格式是：
+
+```json
+{
+  "x": 7,
+  "y": 8
+}
+```
+
+如果输出包含 `debug`，本地服务会保留并在后续链路中上传或展示。
+
+### 本地 HTTP 接口分层
+
+Godot 可以通过本地 HTTP 请求接入不同落子能力。
+
+Bot 专用桥接层位于 `gomoku_ai/bots`，负责把 Godot 的 Bot 落子请求转给现有 `gomoku_ai.bots` 实现：
+
+```text
+Godot
+  -> POST /bot_move
+  -> gomoku_ai.bots local HTTP bridge
+  -> Bot.next_action()
+  -> row/col
+```
+
+这个接口只处理 Bot 角色，不处理神经网络模型或通用外部进程。
+
+模型、独立逻辑程序、C++ 可执行文件、神经网络推理等通用落子能力由 `local_inference_service` 的 MoveEngine 层处理：
+
+```text
+Godot / Match Server
+  -> Local Inference Service
+  -> MoveEngine stdin/stdout
+  -> x/y
+```
+
+因此：
+
+```text
+Bot 是一种玩法角色。
+MoveEngine 是一种落子执行能力。
+Bot 的落子可以走 MoveEngine，也可以直接使用 gomoku_ai.bots 中的 Bot.next_action()。
+模型和通用逻辑进程必须走 MoveEngine。
+```
 
 ## 第一阶段目标
 
@@ -167,9 +244,11 @@ y = 纵坐标，范围 0 到 14
 核心抽象是：
 
 ```text
-输入：board + player + move_index + time_limit
+MoveEngine 输入：board
 输出：x + y
 ```
+
+平台层负责维护 `player`、`move_index`、`time_limit`、历史、校验和胜负判断。MoveEngine 不需要维护这些平台状态。
 
 ### 服务器是最终裁判
 
@@ -206,7 +285,6 @@ Bot 不建议每一步重新启动。推荐在本地服务启动时创建 Bot �
 本地目录命名与架构文档略有不同：
 
 - `match_server`：比赛服务器
-- `local_inference_service`：本地 Bot 托管服务，对应文档中的 Local Bot Runner
+- `local_inference_service`：本地 MoveEngine 托管服务，对应旧文档中的 Local Bot Runner
 - `godot_client`：后续 Godot 客户端
-- `gomoku_ai`：另一个独立项目，本项目不在其中放置内容
-
+- `gomoku_ai`：AI 训练与规则 Bot 项目，其中 `gomoku_ai/bots` 提供 Bot 专用本地 HTTP 桥接层
