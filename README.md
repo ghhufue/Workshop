@@ -241,18 +241,19 @@ Bot 专用桥接层位于 `gomoku_ai/bots`，负责把 Godot 的 Bot 落子请�
 
 ```text
 Godot
-  -> POST /bot_move
+  -> POST http://127.0.0.1:8001/bot_move
   -> gomoku_ai.bots local HTTP bridge
   -> Bot.next_action()
   -> row/col
 ```
 
-这个接口只处理 Bot 角色，不处理神经网络模型或通用外部进程。
+这个接口只处理 Bot 角色。这里的 Bot 只表示规则、启发式、随机或搜索式下棋机器，不包含神经网络模型或通用外部进程。
 
 模型、独立逻辑程序、C++ 可执行文件、神经网络推理等通用落子能力由 `local_inference_service` 的 MoveEngine 层处理：
 
 ```text
 Godot / Match Server
+  -> POST http://127.0.0.1:8000/bot_move
   -> Local Inference Service
   -> MoveEngine stdin/stdout
   -> x/y
@@ -263,9 +264,33 @@ Godot / Match Server
 ```text
 Bot 是一种玩法角色。
 MoveEngine 是一种落子执行能力。
-Bot 的落子可以走 MoveEngine，也可以直接使用 gomoku_ai.bots 中的 Bot.next_action()。
+Bot 的落子走 gomoku_ai.bots local HTTP bridge。
 模型和通用逻辑进程必须走 MoveEngine。
 ```
+
+Godot 选择本地模型/引擎文件时，`local_inference_service` 支持三类动态 engine：
+
+```text
+python_script         选择一个 .py 文件，服务启动 python <file.py>
+executable            选择一个 .exe / .bat / .cmd 或其他可执行文件，服务直接启动该文件
+gomoku_ai_checkpoint  选择一个 gomoku_ai 训练产物 .pt，服务通过 checkpoint 适配器启动推理
+```
+
+请求示例：
+
+```json
+{
+  "board": [[0]],
+  "current_player": 1,
+  "engine_kind": "python_script",
+  "engine_path": "D:/models/my_engine.py",
+  "engine_args": []
+}
+```
+
+如果不显式传 `engine_kind`，服务会按扩展名推断：`.py` 视为 `python_script`，`.pt` 视为 `gomoku_ai_checkpoint`，`.exe/.bat/.cmd` 视为 `executable`。
+
+动态 Python 程序和 exe 都必须遵守 MoveEngine stdin/stdout JSON Lines 协议：从 stdin 读取一行 `{"board": ...}`，向 stdout 输出一行包含 `x/y` 或 `row/col` 的 JSON。调试日志必须写 stderr。
 
 ## 当前运行方式
 
@@ -291,6 +316,19 @@ python -m local_inference_service.main
 
 ```text
 http://127.0.0.1:8000/bot_move
+```
+
+启动 Bot bridge：
+
+```bash
+cd gomoku_ai
+python -m bots.local_http_api
+```
+
+默认地址：
+
+```text
+http://127.0.0.1:8001/bot_move
 ```
 
 Godot 在线模式流程：

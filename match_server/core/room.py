@@ -12,6 +12,7 @@ class Player:
     player_name: str
     bot_name: str
     color: int
+    avatar_index: int = 0
 
 
 @dataclass
@@ -22,10 +23,17 @@ class Move:
 
 
 @dataclass
+class Spectator:
+    spectator_id: str
+    spectator_name: str
+
+
+@dataclass
 class Room:
     room_id: str
     board_size: int = BOARD_SIZE
     players: dict[str, Player] = field(default_factory=dict)
+    spectators: dict[str, Spectator] = field(default_factory=dict)
     board: list[list[int]] = field(default_factory=lambda: create_board(BOARD_SIZE))
     current_turn: int = BLACK
     move_index: int = 0
@@ -40,7 +48,7 @@ class Room:
     def is_full(self) -> bool:
         return len(self.players) >= 2
 
-    def add_player(self, player_name: str, bot_name: str) -> Player:
+    def add_player(self, player_name: str, bot_name: str, avatar_index: int = 0) -> Player:
         if self.is_full:
             raise RoomFullError("Room is full")
 
@@ -50,9 +58,18 @@ class Room:
             player_name=player_name,
             bot_name=bot_name,
             color=color,
+            avatar_index=avatar_index,
         )
         self.players[player.player_id] = player
         return player
+
+    def add_spectator(self, spectator_name: str) -> Spectator:
+        spectator = Spectator(
+            spectator_id=f"s{len(self.spectators) + 1}_{uuid4().hex[:8]}",
+            spectator_name=spectator_name,
+        )
+        self.spectators[spectator.spectator_id] = spectator
+        return spectator
 
     def apply_move(self, player_id: str, x: int, y: int) -> dict[str, int | bool]:
         player = self.players.get(player_id)
@@ -82,4 +99,3 @@ class Room:
             "next_turn": self.current_turn,
             "move_index": self.move_index,
         }
-

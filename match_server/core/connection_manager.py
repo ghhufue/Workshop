@@ -27,6 +27,13 @@ class ConnectionManager:
             player_id=player_id,
         )
 
+    def register_spectator(self, websocket: WebSocket, room_id: str, spectator_id: str) -> None:
+        self._connections[spectator_id] = PlayerConnection(
+            websocket=websocket,
+            room_id=room_id,
+            player_id=spectator_id,
+        )
+
     def disconnect(self, websocket: WebSocket) -> None:
         for player_id, connection in list(self._connections.items()):
             if connection.websocket is websocket:

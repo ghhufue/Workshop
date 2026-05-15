@@ -12,6 +12,7 @@ def test_websocket_create_join_and_move_flow() -> None:
                 "type": "create_room",
                 "player_name": "black_client",
                 "model_name": "model_a",
+                "avatar_index": 2,
             }
         )
         created = black_ws.receive_json()
@@ -27,6 +28,7 @@ def test_websocket_create_join_and_move_flow() -> None:
                     "room_id": created["room_id"],
                     "player_name": "white_client",
                     "model_name": "model_b",
+                    "avatar_index": 1,
                 }
             )
             joined = white_ws.receive_json()
@@ -39,6 +41,8 @@ def test_websocket_create_join_and_move_flow() -> None:
             assert white_start["type"] == "game_start"
             assert black_start["black_model"] == "model_a"
             assert black_start["white_model"] == "model_b"
+            assert black_start["black_avatar_index"] == 2
+            assert black_start["white_avatar_index"] == 1
 
             turn = black_ws.receive_json()
             assert turn["type"] == "your_turn"

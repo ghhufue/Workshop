@@ -15,6 +15,8 @@ def room_created(room: Room, player: Player) -> dict[str, Any]:
         "room_id": room.room_id,
         "player_id": player.player_id,
         "color": player.color,
+        "player_name": player.player_name,
+        "avatar_index": player.avatar_index,
         "board_size": room.board_size,
     }
 
@@ -25,6 +27,17 @@ def room_joined(room: Room, player: Player) -> dict[str, Any]:
         "room_id": room.room_id,
         "player_id": player.player_id,
         "color": player.color,
+        "player_name": player.player_name,
+        "avatar_index": player.avatar_index,
+        "board_size": room.board_size,
+    }
+
+
+def room_hosted(room: Room, spectator_id: str) -> dict[str, Any]:
+    return {
+        "type": "room_hosted",
+        "room_id": room.room_id,
+        "spectator_id": spectator_id,
         "board_size": room.board_size,
     }
 
@@ -37,6 +50,8 @@ def game_start(room: Room) -> dict[str, Any]:
         "board_size": room.board_size,
         "black_player": players[1].player_name,
         "white_player": players[-1].player_name,
+        "black_avatar_index": players[1].avatar_index,
+        "white_avatar_index": players[-1].avatar_index,
         "black_model": players[1].bot_name,
         "white_model": players[-1].bot_name,
         "current_turn": room.current_turn,
@@ -81,6 +96,13 @@ def game_over(room: Room, reason: str = "five_in_a_row") -> dict[str, Any]:
         "winner": room.winner,
         "reason": reason,
         "final_board": room.board,
+    }
+
+
+def match_history(records: list[dict[str, Any]]) -> dict[str, Any]:
+    return {
+        "type": "match_history",
+        "records": records,
     }
 
 

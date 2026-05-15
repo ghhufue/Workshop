@@ -11,8 +11,10 @@ from match_server.core.protocol import (
     expected_request_id,
     game_over,
     game_start,
+    match_history,
     move_result,
     room_created,
+    room_hosted,
     room_joined,
     your_turn,
 )
@@ -24,6 +26,7 @@ from shared.constants import EMPTY
 app = FastAPI(title="Gomoku Match Server")
 room_manager = RoomManager()
 connections = ConnectionManager()
+completed_matches: list[dict[str, Any]] = []
 
 
 @app.get("/health")
@@ -45,8 +48,16 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
                 room, player_id = await _handle_create_room(websocket, payload)
                 continue
 
+            if message_type == "host_game":
+                room, player_id = await _handle_host_game(websocket, payload)
+                continue
+
             if message_type == "join_room":
                 room, player_id = await _handle_join_room(websocket, payload)
+                continue
+
+            if message_type == "match_history":
+                await websocket.send_json(match_history(completed_matches))
                 continue
 
             if message_type == "move":
@@ -67,17 +78,26 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
 async def _handle_create_room(websocket: WebSocket, payload: dict[str, Any]) -> tuple[Room, str]:
     player_name = str(payload.get("player_name") or "player")
     model_name = _model_name_from_payload(payload)
-    room, player = room_manager.create_room(player_name, model_name)
+    room, player = room_manager.create_room(player_name, model_name, _avatar_index_from_payload(payload))
     connections.register(websocket, room.room_id, player.player_id)
     await websocket.send_json(room_created(room, player))
     return room, player.player_id
+
+
+async def _handle_host_game(websocket: WebSocket, payload: dict[str, Any]) -> tuple[Room, str]:
+    spectator_name = str(payload.get("player_name") or payload.get("spectator_name") or "host")
+    room, spectator = room_manager.host_room(spectator_name)
+    connections.register_spectator(websocket, room.room_id, spectator.spectator_id)
+    await websocket.send_json(room_hosted(room, spectator.spectator_id))
+    await websocket.send_json(match_history(completed_matches))
+    return room, spectator.spectator_id
 
 
 async def _handle_join_room(websocket: WebSocket, payload: dict[str, Any]) -> tuple[Room, str]:
     room_id = str(payload.get("room_id") or "")
     player_name = str(payload.get("player_name") or "player")
     model_name = _model_name_from_payload(payload)
-    room, player = room_manager.join_room(room_id, player_name, model_name)
+    room, player = room_manager.join_room(room_id, player_name, model_name, _avatar_index_from_payload(payload))
     connections.register(websocket, room.room_id, player.player_id)
     await websocket.send_json(room_joined(room, player))
 
@@ -111,6 +131,7 @@ async def _handle_move(
     await connections.broadcast_room(room.room_id, move_result(room, x, y, player_color, result))
 
     if room.winner != EMPTY:
+        completed_matches.append(_history_record(room))
         await connections.broadcast_room(room.room_id, game_over(room))
         return
 
@@ -128,9 +149,30 @@ def _model_name_from_payload(payload: dict[str, Any]) -> str:
     return str(payload.get("model_name") or payload.get("engine_name") or payload.get("bot_name") or "model")
 
 
+def _avatar_index_from_payload(payload: dict[str, Any]) -> int:
+    return max(0, int(payload.get("avatar_index") or 0))
+
+
 def _coordinates_from_payload(payload: dict[str, Any]) -> tuple[int, int]:
     if "x" in payload and "y" in payload:
         return int(payload["x"]), int(payload["y"])
     if "col" in payload and "row" in payload:
         return int(payload["col"]), int(payload["row"])
     raise InvalidMoveError("Move must contain x/y or row/col")
+
+
+def _history_record(room: Room) -> dict[str, Any]:
+    players = sorted(room.players.values(), key=lambda item: item.color, reverse=True)
+    black = next((player for player in players if player.color == 1), None)
+    white = next((player for player in players if player.color == -1), None)
+    return {
+        "room_id": room.room_id,
+        "black_player": black.player_name if black else "",
+        "black_model": black.bot_name if black else "",
+        "black_avatar_index": black.avatar_index if black else 0,
+        "white_player": white.player_name if white else "",
+        "white_model": white.bot_name if white else "",
+        "white_avatar_index": white.avatar_index if white else 0,
+        "winner": room.winner,
+        "moves": room.move_index,
+    }

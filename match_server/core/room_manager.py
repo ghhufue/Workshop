@@ -2,7 +2,7 @@ import random
 
 from shared.constants import BOARD_SIZE
 from match_server.core.errors import RoomNotFoundError
-from match_server.core.room import Player, Room
+from match_server.core.room import Player, Room, Spectator
 
 
 class RoomManager:
@@ -10,16 +10,23 @@ class RoomManager:
         self.board_size = board_size
         self.rooms: dict[str, Room] = {}
 
-    def create_room(self, player_name: str, bot_name: str) -> tuple[Room, Player]:
+    def create_room(self, player_name: str, bot_name: str, avatar_index: int = 0) -> tuple[Room, Player]:
         room_id = self._generate_room_id()
         room = Room(room_id=room_id, board_size=self.board_size)
-        player = room.add_player(player_name, bot_name)
+        player = room.add_player(player_name, bot_name, avatar_index)
         self.rooms[room_id] = room
         return room, player
 
-    def join_room(self, room_id: str, player_name: str, bot_name: str) -> tuple[Room, Player]:
+    def host_room(self, spectator_name: str) -> tuple[Room, Spectator]:
+        room_id = self._generate_room_id()
+        room = Room(room_id=room_id, board_size=self.board_size)
+        spectator = room.add_spectator(spectator_name)
+        self.rooms[room_id] = room
+        return room, spectator
+
+    def join_room(self, room_id: str, player_name: str, bot_name: str, avatar_index: int = 0) -> tuple[Room, Player]:
         room = self.get_room(room_id)
-        player = room.add_player(player_name, bot_name)
+        player = room.add_player(player_name, bot_name, avatar_index)
         return room, player
 
     def get_room(self, room_id: str) -> Room:
