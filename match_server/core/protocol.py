@@ -42,6 +42,25 @@ def room_hosted(room: Room, spectator_id: str) -> dict[str, Any]:
     }
 
 
+def room_state(room: Room) -> dict[str, Any]:
+    players = _players_by_color(room)
+    black = players.get(1)
+    white = players.get(-1)
+    return {
+        "type": "room_state",
+        "room_id": room.room_id,
+        "board_size": room.board_size,
+        "player_count": len(room.players),
+        "black_player": black.player_name if black else "",
+        "black_model": black.bot_name if black else "",
+        "black_avatar_index": black.avatar_index if black else 0,
+        "white_player": white.player_name if white else "",
+        "white_model": white.bot_name if white else "",
+        "white_avatar_index": white.avatar_index if white else 0,
+        "is_full": room.is_full,
+    }
+
+
 def game_start(room: Room) -> dict[str, Any]:
     players = _players_by_color(room)
     return {
@@ -96,13 +115,6 @@ def game_over(room: Room, reason: str = "five_in_a_row") -> dict[str, Any]:
         "winner": room.winner,
         "reason": reason,
         "final_board": room.board,
-    }
-
-
-def match_history(records: list[dict[str, Any]]) -> dict[str, Any]:
-    return {
-        "type": "match_history",
-        "records": records,
     }
 
 
