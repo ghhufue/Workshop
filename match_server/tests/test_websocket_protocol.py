@@ -35,12 +35,69 @@ def test_websocket_create_join_and_move_flow() -> None:
             assert joined["type"] == "room_joined"
             assert joined["color"] == -1
 
+            state = black_ws.receive_json()
+            assert state["type"] == "room_state"
+            assert state["is_full"] is True
+
+            white_state = white_ws.receive_json()
+            assert white_state["type"] == "room_state"
+            assert white_state["is_full"] is True
+
+            black_ws.send_json(
+                {
+                    "type": "start_game",
+                    "room_id": created["room_id"],
+                }
+            )
+
+            black_model_select = black_ws.receive_json()
+            white_model_select = white_ws.receive_json()
+            assert black_model_select["type"] == "model_select"
+            assert white_model_select["type"] == "model_select"
+
+            black_model_state = black_ws.receive_json()
+            white_model_state = white_ws.receive_json()
+            assert black_model_state["type"] == "room_state"
+            assert white_model_state["type"] == "room_state"
+            assert black_model_state["all_models_ready"] is False
+
+            black_ws.send_json(
+                {
+                    "type": "select_model",
+                    "room_id": created["room_id"],
+                    "model_name": "model_a_selected",
+                }
+            )
+            black_ready_state = black_ws.receive_json()
+            white_observed_black_ready = white_ws.receive_json()
+            assert black_ready_state["black_model_ready"] is True
+            assert white_observed_black_ready["black_model_ready"] is True
+
+            white_ws.send_json(
+                {
+                    "type": "select_model",
+                    "room_id": created["room_id"],
+                    "model_name": "model_b_selected",
+                }
+            )
+            black_all_ready = black_ws.receive_json()
+            white_all_ready = white_ws.receive_json()
+            assert black_all_ready["all_models_ready"] is True
+            assert white_all_ready["all_models_ready"] is True
+
+            black_ws.send_json(
+                {
+                    "type": "start_game",
+                    "room_id": created["room_id"],
+                }
+            )
+
             black_start = black_ws.receive_json()
             white_start = white_ws.receive_json()
             assert black_start["type"] == "game_start"
             assert white_start["type"] == "game_start"
-            assert black_start["black_model"] == "model_a"
-            assert black_start["white_model"] == "model_b"
+            assert black_start["black_model"] == "model_a_selected"
+            assert black_start["white_model"] == "model_b_selected"
             assert black_start["black_avatar_index"] == 2
             assert black_start["white_avatar_index"] == 1
 

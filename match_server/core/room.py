@@ -13,6 +13,7 @@ class Player:
     bot_name: str
     color: int
     avatar_index: int = 0
+    model_ready: bool = False
 
 
 @dataclass
@@ -39,6 +40,8 @@ class Room:
     move_index: int = 0
     history: list[Move] = field(default_factory=list)
     winner: int = EMPTY
+    model_select_started: bool = False
+    game_started: bool = False
 
     def __post_init__(self) -> None:
         if len(self.board) != self.board_size:
@@ -63,6 +66,18 @@ class Room:
         self.players[player.player_id] = player
         return player
 
+    @property
+    def all_models_ready(self) -> bool:
+        return self.is_full and all(player.model_ready for player in self.players.values())
+
+    def set_player_model(self, player_id: str, bot_name: str) -> Player:
+        player = self.players.get(player_id)
+        if player is None:
+            raise InvalidMoveError("Player does not belong to this room")
+        player.bot_name = bot_name
+        player.model_ready = True
+        return player
+
     def add_spectator(self, spectator_name: str) -> Spectator:
         spectator = Spectator(
             spectator_id=f"s{len(self.spectators) + 1}_{uuid4().hex[:8]}",
@@ -75,6 +90,8 @@ class Room:
         player = self.players.get(player_id)
         if player is None:
             raise InvalidMoveError("Player does not belong to this room")
+        if not self.game_started:
+            raise InvalidMoveError("Game has not started")
         if self.winner != EMPTY:
             raise InvalidMoveError("Game is already over")
         if player.color != self.current_turn:

@@ -28,6 +28,7 @@ def test_apply_move_updates_board_and_turn() -> None:
     room = Room(room_id="ABC")
     black = room.add_player("player_a", "random_bot")
     white = room.add_player("player_b", "center_first_bot")
+    room.game_started = True
 
     result = room.apply_move(black.player_id, 7, 7)
 
@@ -52,6 +53,7 @@ def test_apply_move_sets_winner() -> None:
     room = Room(room_id="ABC")
     black = room.add_player("player_a", "random_bot")
     room.add_player("player_b", "center_first_bot")
+    room.game_started = True
     for x in range(4):
         room.board[0][x] = BLACK
 
@@ -59,4 +61,3 @@ def test_apply_move_sets_winner() -> None:
 
     assert result["winner"] == BLACK
     assert room.winner == BLACK
-

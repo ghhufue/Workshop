@@ -19,6 +19,7 @@ class EngineProcess:
 
     _process: asyncio.subprocess.Process | None = field(default=None, init=False)
     _stderr_task: asyncio.Task | None = field(default=None, init=False)
+    _request_lock: asyncio.Lock = field(default_factory=asyncio.Lock, init=False)
     stderr_lines: list[str] = field(default_factory=list, init=False)
 
     async def start(self) -> None:
@@ -55,27 +56,28 @@ class EngineProcess:
         self._process = None
 
     async def request_move(self, engine_board: list[list[int]]) -> EngineMove:
-        await self.start()
-        process = self._require_process()
+        async with self._request_lock:
+            await self.start()
+            process = self._require_process()
 
-        if process.stdin is None or process.stdout is None:
-            raise EngineProcessError("MoveEngine process pipes are not available")
+            if process.stdin is None or process.stdout is None:
+                raise EngineProcessError("MoveEngine process pipes are not available")
 
-        process.stdin.write(encode_engine_request(engine_board).encode("utf-8"))
-        await process.stdin.drain()
+            process.stdin.write(encode_engine_request(engine_board).encode("utf-8"))
+            await process.stdin.drain()
 
-        try:
-            raw_line = await asyncio.wait_for(
-                process.stdout.readline(),
-                timeout=max(0.001, self.timeout_ms / 1000),
-            )
-        except asyncio.TimeoutError as exc:
-            raise EngineProcessError("MoveEngine timed out") from exc
+            try:
+                raw_line = await asyncio.wait_for(
+                    process.stdout.readline(),
+                    timeout=max(0.001, self.timeout_ms / 1000),
+                )
+            except asyncio.TimeoutError as exc:
+                raise EngineProcessError("MoveEngine timed out") from exc
 
-        if not raw_line:
-            raise EngineProcessError("MoveEngine exited without output")
+            if not raw_line:
+                raise EngineProcessError("MoveEngine exited without output")
 
-        return parse_engine_output(raw_line.decode("utf-8"))
+            return parse_engine_output(raw_line.decode("utf-8"))
 
     def _require_process(self) -> asyncio.subprocess.Process:
         if self._process is None or self._process.returncode is not None:

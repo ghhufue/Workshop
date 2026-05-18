@@ -11,6 +11,7 @@ from match_server.core.protocol import (
     expected_request_id,
     game_over,
     game_start,
+    model_select,
     move_result,
     room_created,
     room_hosted,
@@ -55,6 +56,20 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
                 room, player_id = await _handle_join_room(websocket, payload)
                 continue
 
+            if message_type == "start_game":
+                if room is None or not player_id:
+                    await websocket.send_json(error("NOT_JOINED", "Client is not in a room"))
+                    continue
+                await _handle_start_game(room, player_id)
+                continue
+
+            if message_type == "select_model":
+                if room is None or not player_id:
+                    await websocket.send_json(error("NOT_JOINED", "Client is not in a room"))
+                    continue
+                await _handle_select_model(room, player_id, payload)
+                continue
+
             if message_type == "move":
                 if room is None or not player_id:
                     await websocket.send_json(error("NOT_JOINED", "Client is not in a room"))
@@ -96,13 +111,42 @@ async def _handle_join_room(websocket: WebSocket, payload: dict[str, Any]) -> tu
     connections.register(websocket, room.room_id, player.player_id)
     await websocket.send_json(room_joined(room, player))
 
-    if room.is_full:
-        await connections.broadcast_room(room.room_id, game_start(room))
-        await _send_turn_to_current_player(room)
-    else:
-        await connections.broadcast_room(room.room_id, room_state(room))
+    await connections.broadcast_room(room.room_id, room_state(room))
 
     return room, player.player_id
+
+
+async def _handle_start_game(room: Room, player_id: str) -> None:
+    if not room.is_full:
+        raise MatchServerError("Room needs two players before starting")
+    if room.game_started:
+        raise MatchServerError("Game has already started")
+    starter = room.players.get(player_id)
+    if starter is not None and starter.color != 1:
+        raise MatchServerError("Only the room creator can start the game")
+    if starter is None and player_id not in room.spectators:
+        raise MatchServerError("Only the room creator can start the game")
+
+    if not room.model_select_started:
+        room.model_select_started = True
+        await connections.broadcast_room(room.room_id, model_select(room))
+        await connections.broadcast_room(room.room_id, room_state(room))
+        return
+
+    if not room.all_models_ready:
+        raise MatchServerError("Both players must select a model before starting")
+
+    room.game_started = True
+    await connections.broadcast_room(room.room_id, game_start(room))
+    await _send_turn_to_current_player(room)
+
+
+async def _handle_select_model(room: Room, player_id: str, payload: dict[str, Any]) -> None:
+    if not room.model_select_started:
+        raise MatchServerError("Model selection has not started")
+    model_name = _model_name_from_payload(payload)
+    room.set_player_model(player_id, model_name)
+    await connections.broadcast_room(room.room_id, room_state(room))
 
 
 async def _handle_move(

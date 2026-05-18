@@ -54,10 +54,23 @@ def room_state(room: Room) -> dict[str, Any]:
         "black_player": black.player_name if black else "",
         "black_model": black.bot_name if black else "",
         "black_avatar_index": black.avatar_index if black else 0,
+        "black_model_ready": black.model_ready if black else False,
         "white_player": white.player_name if white else "",
         "white_model": white.bot_name if white else "",
         "white_avatar_index": white.avatar_index if white else 0,
+        "white_model_ready": white.model_ready if white else False,
         "is_full": room.is_full,
+        "all_models_ready": room.all_models_ready,
+        "model_select_started": room.model_select_started,
+        "game_started": room.game_started,
+    }
+
+
+def model_select(room: Room) -> dict[str, Any]:
+    return {
+        "type": "model_select",
+        "room_id": room.room_id,
+        "board_size": room.board_size,
     }
 
 
