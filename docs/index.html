@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>五子棋 AI 训练与博弈 Workshop</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
+  <style>
+    :root {
+      --theme-color: #62a8ff;
+      --bg: #0f141b;
+      --panel: #151b24;
+      --panel-strong: #1d2530;
+      --text: #d9e2ec;
+      --muted: #94a3b8;
+      --border: #2a3544;
+      --code-bg: #111827;
+      --code-text: #e5e7eb;
+    }
+
+    html,
+    body,
+    .app-name,
+    .content,
+    .markdown-section {
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    body {
+      color-scheme: dark;
+    }
+
+    a {
+      color: var(--theme-color);
+    }
+
+    .sidebar-nav strong {
+      color: #f8fafc;
+    }
+
+    markdown-section code {
+      border-radius: 4px;
+    }
+
+    .sidebar,
+    .app-nav,
+    .search,
+    .search input {
+      background: var(--panel);
+      color: var(--text);
+    }
+
+    .sidebar {
+      border-right: 1px solid var(--border);
+    }
+
+    .sidebar ul li a,
+    .sidebar ul li p,
+    .app-name-link,
+    .app-nav a {
+      color: var(--text);
+    }
+
+    .sidebar ul li.active > a,
+    .sidebar ul li a:hover,
+    .app-nav a:hover {
+      color: var(--theme-color);
+    }
+
+    .search {
+      border-bottom: 1px solid var(--border);
+    }
+
+    .search input {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+
+    .search input::placeholder,
+    .search .clear-button,
+    .search .matching-post p,
+    .markdown-section blockquote {
+      color: var(--muted);
+    }
+
+    .search .results-panel,
+    .search .matching-post {
+      background: var(--panel);
+      border-color: var(--border);
+    }
+
+    .markdown-section h1,
+    .markdown-section h2,
+    .markdown-section h3,
+    .markdown-section h4,
+    .markdown-section strong {
+      color: #f8fafc;
+    }
+
+    .markdown-section hr,
+    .markdown-section table,
+    .markdown-section tr,
+    .markdown-section td,
+    .markdown-section th {
+      border-color: var(--border);
+    }
+
+    .markdown-section tr:nth-child(2n) {
+      background-color: var(--panel);
+    }
+
+    .markdown-section th {
+      background: var(--panel-strong);
+      color: #f8fafc;
+    }
+
+    .markdown-section blockquote {
+      border-left-color: var(--theme-color);
+      background: rgba(98, 168, 255, 0.08);
+    }
+
+    .markdown-section code,
+    .markdown-section pre,
+    .markdown-section pre > code,
+    .token.punctuation,
+    .token.operator {
+      background: var(--code-bg);
+      color: var(--code-text);
+    }
+
+    .markdown-section code {
+      border: 1px solid var(--border);
+    }
+
+    .markdown-section pre {
+      border: 1px solid var(--border);
+    }
+
+    .docsify-copy-code-button {
+      background: var(--panel-strong) !important;
+      color: var(--text) !important;
+      border-left: 1px solid var(--border) !important;
+      border-bottom: 1px solid var(--border) !important;
+    }
+
+    .anchor span {
+      color: inherit;
+    }
+
+    ::selection {
+      background: rgba(98, 168, 255, 0.35);
+    }
+  </style>
+</head>
+<body>
+  <div id="app">文档加载中...</div>
+  <script>
+    window.$docsify = {
+      name: '五子棋 AI 训练与博弈',
+      repo: '',
+      loadSidebar: true,
+      loadNavbar: true,
+      subMaxLevel: 2,
+      auto2top: true,
+      search: {
+        paths: 'auto',
+        placeholder: '搜索文档',
+        noData: '没有找到结果',
+        depth: 3
+      },
+      copyCode: {
+        buttonText: '复制',
+        errorText: '复制失败',
+        successText: '已复制'
+      }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify-copy-code@2"></script>
+</body>
+</html>
