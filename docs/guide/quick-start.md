@@ -18,8 +18,8 @@
 
 - [强化学习基础](../workshop/rl-intro.md)
 - [PPO 算法](../workshop/ppo.md)
-- [五子棋建模](../workshop/gomoku-rl.md)
-- [训练与评估](../workshop/training-evaluation.md)
+- [五子棋建模与训练阶段](../workshop/gomoku-rl.md)
+- [训练后期与评估](../workshop/training-evaluation.md)
 
 这些内容是项目真正希望你掌握的部分。
 
@@ -47,4 +47,4 @@
 
 ## 想自己运行项目时
 
-如果你想在自己的电脑上复现演示，需要 Python 环境和 Godot。具体启动命令放在 [运行与排错](runbook.md)，这部分不是普通读者必须掌握的内容。
+如果你想在自己的电脑上复现演示，先看 [安装说明](installation.md)，完成仓库克隆、虚拟环境、PyTorch 和 Godot 安装。具体启动命令放在 [运行与排错](runbook.md)，这部分不是普通读者必须掌握的内容。

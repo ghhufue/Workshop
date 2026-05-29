@@ -2,11 +2,14 @@
   * [首页](/)
   * [如何阅读与体验](/guide/quick-start)
 
+* 安装项目
+  * [安装说明](/guide/installation)
+
 * Workshop 讲义
   * [强化学习基础](/workshop/rl-intro)
   * [PPO 算法](/workshop/ppo)
-  * [五子棋建模](/workshop/gomoku-rl)
-  * [训练与评估](/workshop/training-evaluation)
+  * [五子棋建模与训练阶段](/workshop/gomoku-rl)
+  * [训练后期与评估](/workshop/training-evaluation)
 
 * 对战演示
   * [演示界面说明](/guide/godot-client)
