@@ -26,7 +26,6 @@ python -m local_inference_service.main
 如果演示线下 Bot 列表，还可以启动：
 
 ```powershell
-cd gomoku_ai
 python -m bots.local_http_api
 ```
 

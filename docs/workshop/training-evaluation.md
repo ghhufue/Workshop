@@ -17,7 +17,7 @@ gomoku_ai/opponents.py
 V5 脚本：
 
 ```powershell
-python scripts/train_v5_mixed.py
+python gomoku_ai/scripts/train_v5_mixed.py
 ```
 
 配置：
@@ -55,7 +55,7 @@ python scripts/train_v5_mixed.py
 V6 脚本：
 
 ```powershell
-python scripts/train_v6_selfplay.py --opponent-checkpoint runs/v5_mixed/<run>/final_model.pt
+python gomoku_ai/scripts/train_v6_selfplay.py --opponent-checkpoint runs/v5_mixed/<run>/final_model.pt
 ```
 
 配置：
@@ -85,19 +85,18 @@ python scripts/train_v6_selfplay.py --opponent-checkpoint runs/v5_mixed/<run>/fi
 
 ## 训练命令与输出
 
-进入子模块后安装：
+训练脚本使用仓库根目录的虚拟环境和依赖。先在根目录完成一次安装：
 
 ```powershell
-cd gomoku_ai
-python -m pip install -e .
+python -m pip install -r requirements.txt
 ```
 
 最小 smoke run：
 
 ```powershell
-python scripts/demo_v0_env.py
-python scripts/train_v1_terminal.py --n-envs 1 --n-steps 4 --updates 1 --batch-size 4 --epochs 1 --no-progress
-python scripts/evaluate.py --checkpoint runs/v1_terminal/<run>/final_model.pt --games 10 --bots random
+python gomoku_ai/scripts/demo_v0_env.py
+python gomoku_ai/scripts/train_v1_terminal.py --n-envs 1 --n-steps 4 --updates 1 --batch-size 4 --epochs 1 --no-progress
+python gomoku_ai/scripts/evaluate.py --checkpoint runs/v1_terminal/<run>/final_model.pt --games 10 --bots random
 ```
 
 常用训练参数：
@@ -155,7 +154,7 @@ runs/<stage_name>/<timestamp>/
 评估脚本：
 
 ```powershell
-python scripts/evaluate.py `
+python gomoku_ai/scripts/evaluate.py `
   --checkpoint runs/v5_mixed/<run>/final_model.pt `
   --games 50 `
   --bots random classic_rule reward_driven_medium `
@@ -189,7 +188,7 @@ reward_driven_medium: 40
 可以用 policy viewer 看模型实际在想什么：
 
 ```powershell
-python tools/policy_viewer.py --checkpoint runs/v3_shaped/<run>/final_model.pt --bot classic_rule
+python gomoku_ai/tools/policy_viewer.py --checkpoint runs/v3_shaped/<run>/final_model.pt --bot classic_rule
 ```
 
 它会显示策略概率热力图，并让你逐步查看模型和 Bot 的对局。

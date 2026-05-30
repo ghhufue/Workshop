@@ -321,7 +321,6 @@ http://127.0.0.1:8000/bot_move
 启动 Bot bridge：
 
 ```bash
-cd gomoku_ai
 python -m bots.local_http_api
 ```
 

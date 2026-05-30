@@ -57,7 +57,7 @@ step(action) -> observation, action_mask, reward, done, info
 V1 脚本：
 
 ```powershell
-python scripts/train_v1_terminal.py
+python gomoku_ai/scripts/train_v1_terminal.py
 ```
 
 V1 是最朴素的训练版本：
@@ -99,7 +99,7 @@ V1 是最朴素的训练版本：
 V2 脚本：
 
 ```powershell
-python scripts/train_v2_masked.py
+python gomoku_ai/scripts/train_v2_masked.py
 ```
 
 V2 仍然使用终局奖励，但打开 action mask：
@@ -133,7 +133,7 @@ Mask 的意义不是“作弊”，而是把规则和搜索空间约束交给环
 V3 脚本：
 
 ```powershell
-python scripts/train_v3_shaped.py
+python gomoku_ai/scripts/train_v3_shaped.py
 ```
 
 V3 开始使用 C++ 后端提供棋形奖励：
@@ -175,7 +175,7 @@ total_reward = terminal_reward + shape_alpha * shape_reward
 V4 脚本：
 
 ```powershell
-python scripts/train_v4_anneal.py
+python gomoku_ai/scripts/train_v4_anneal.py
 ```
 
 V4 的重点是降低模型对人工奖励的依赖：

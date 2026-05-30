@@ -81,24 +81,18 @@ python -m pip install --upgrade pip setuptools wheel
 
 ## 4. 安装项目依赖
 
-先安装主项目依赖：
+本项目只需要仓库根目录下这一个虚拟环境。确认当前目录是 `Workshop`，并且虚拟环境已经激活后，运行一次：
 
 ```powershell
 pip install -r requirements.txt
 ```
 
-再安装 `gomoku_ai` 子模块：
-
-```powershell
-cd gomoku_ai
-pip install -e .
-cd ..
-```
+根目录的 `requirements.txt` 已经包含主服务依赖、`gomoku_ai` 训练依赖，并会以 editable 方式安装 `gomoku_ai` 子模块，不需要再进入 `gomoku_ai` 目录创建或安装第二套环境。
 
 `gomoku_ai` 当前默认依赖 GPU 版 PyTorch：
 
 ```text
-torch==2.10.0+cu128
+torch==2.12.0+cu130
 ```
 
 如果你有 NVIDIA 显卡并且驱动足够新，通常可以直接安装成功。如果安装失败，按下一节重新选择适合自己机器的 PyTorch 版本。
@@ -196,25 +190,21 @@ pip show torch
 
 ### 本项目推荐命令
 
-如果你只想按项目当前依赖复现，可以使用 `gomoku_ai/requirements.txt`。但要注意：这个文件可能固定了旧的 PyTorch CUDA wheel，例如 `cu128`。如果官网当前稳定版已经换成 CUDA 12.6、13.0 或 13.2，优先使用官网生成的新命令安装 PyTorch。
-
-推荐流程：
+如果你只想按项目当前依赖复现，优先使用仓库根目录的 `requirements.txt`：
 
 ```powershell
-pip install numpy pybind11 pytest "setuptools<81" tensorboard tqdm
-pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu126
-pip install -e gomoku_ai --no-deps
-```
-
-上面第二行请替换成 PyTorch 官网根据你选择生成的命令。如果你在官网选择 CUDA 13.0 或 CUDA 13.2，就使用官网显示的 `cu130` 或 `cu132` 命令。
-
-如果你明确要使用项目旧依赖中固定的 CUDA 12.8，并且你的环境还能安装到对应 wheel，可以运行：
-
-```powershell
-cd gomoku_ai
 pip install -r requirements.txt
-cd ..
 ```
+
+这个文件已经合并了 `gomoku_ai` 的依赖，并默认使用 CUDA 13.0 的 PyTorch wheel。如果你的机器不适合 CUDA 13.0，请先按 PyTorch 官网选择合适版本，再把根目录 `requirements.txt` 里的 `--index-url` 和 `torch==...` 改成官网生成命令对应的版本。
+
+例如 CUDA 12.6 通常需要类似：
+
+```powershell
+pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu126
+```
+
+如果你是在开发独立的 `gomoku_ai` 子模块，可以使用它自己的 `gomoku_ai/requirements.txt`。但下载和运行完整 Workshop 仓库时，统一使用根目录虚拟环境和根目录 `requirements.txt`，不需要为子模块再建一套环境。
 
 如果没有 NVIDIA 显卡，安装 CPU 版本：
 
@@ -266,10 +256,8 @@ pytest -q
 验证 `gomoku_ai` 最小训练流程：
 
 ```powershell
-cd gomoku_ai
-python scripts/demo_v0_env.py
-python scripts/train_v1_terminal.py --n-envs 1 --n-steps 4 --updates 1 --batch-size 4 --epochs 1 --no-progress
-cd ..
+python gomoku_ai/scripts/demo_v0_env.py
+python gomoku_ai/scripts/train_v1_terminal.py --n-envs 1 --n-steps 4 --updates 1 --batch-size 4 --epochs 1 --no-progress
 ```
 
 如果这些命令能跑通，说明 Python 环境、子模块和基础训练依赖已经可用。
