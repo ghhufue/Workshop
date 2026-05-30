@@ -247,6 +247,40 @@ Godot -> Import -> 选择 Workshop/godot_client/project.godot
 python tools\verify_environment.py
 ```
 
+验证通过时，所有检查项都应显示 `[OK]`：
+
+```text
+[OK  ] Python version                   CPython 3.13.10 at .venv\Scripts\python.exe
+[OK  ] Virtual environment              active at .venv
+[OK  ] pip                              pip 25.3 ...
+[OK  ] setuptools                       80.10.2; satisfies <81
+[OK  ] PyTorch                          torch 2.12.0+cu130; cuda_available=True; device=NVIDIA GeForce RTX 5070
+[OK  ] Package fastapi                  0.136.1
+[OK  ] Package uvicorn                  0.46.0
+[OK  ] Package websockets               16.0
+[OK  ] Package pydantic                 2.13.4
+[OK  ] Package PyYAML                   6.0.3
+[OK  ] Package numpy                    2.4.6
+[OK  ] Package pybind11                 3.0.4
+[OK  ] Package torch                    2.12.0+cu130
+[OK  ] Package tqdm                     4.67.3
+[OK  ] Package tensorboard              2.20.0
+[OK  ] Local Inference Service imports  app and core modules import successfully
+[OK  ] Local Inference Service request  {"row": 7, "col": 7, ...}
+[OK  ] Dynamic Python MoveEngine        stdin/stdout JSON Lines path works
+[OK  ] gomoku_ai imports                gomoku_ai, bots, and env import successfully
+[OK  ] C++ precompute table             gomoku_ai\cpp\precompute\direction_delta_table.bin
+[OK  ] gomoku_ai C++ backend            available; scored 1 candidate(s)
+[OK  ] pip dependency consistency       No broken requirements found.
+
+Environment verification passed.
+```
+
+> 如果没有安装 MSVC 编译器，可以加 `--skip-compiler` 跳过 C++ 编译器检查：
+> ```powershell
+> python tools\verify_environment.py --skip-compiler
+> ```
+
 验证 `gomoku_ai` 最小训练流程：
 
 ```powershell
