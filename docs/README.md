@@ -18,6 +18,7 @@
   -> 奖励退火
   -> 混合对手与历史模型对手
   -> 评估与可视化观察
+  -> 现场实现自己的五子棋 AI
 ```
 
 对应到代码训练阶段：
@@ -31,6 +32,7 @@
 | V4 | 为什么人工奖励不能一直很强 |
 | V5 | 为什么不能只和一种 Bot 训练 |
 | V6 | 历史 checkpoint 对手有什么作用 |
+| 现场对弈 | 怎样实现一个能接入平台的五子棋 AI |
 
 ## 重点问题
 
@@ -51,7 +53,8 @@
 4. [PPO 算法](workshop/ppo.md)：理解 Value、Advantage、Actor-Critic 和 PPO Clip。
 5. [五子棋建模与训练阶段](workshop/gomoku-rl.md)：按 V0 到 V4 理解环境、稀疏奖励、mask、棋形奖励和退火。
 6. [训练后期与评估](workshop/training-evaluation.md)：理解混合对手、历史模型对手、评估和可视化观察。
-7. [演示界面说明](guide/godot-client.md)：了解展示时客户端里看到的内容。
+7. [现场实现五子棋 AI](workshop/build-your-own-ai.md)：按统一协议实现自己的落子程序并参与对弈。
+8. [演示界面说明](guide/godot-client.md)：了解展示时客户端里看到的内容。
 
 ## 可以先跳过什么
 

@@ -241,10 +241,10 @@ Godot -> Import -> 选择 Workshop/godot_client/project.godot
 
 ## 7. 验证安装
 
-验证 Python 服务依赖：
+验证当前 Python 环境、pip 依赖、本地推理服务、MoveEngine 协议、`gomoku_ai` C++ 后端和 C++ 编译器：
 
 ```powershell
-pytest -q
+python tools\verify_environment.py
 ```
 
 验证 `gomoku_ai` 最小训练流程：
@@ -255,6 +255,12 @@ python gomoku_ai/scripts/train_v1_terminal.py --n-envs 1 --n-steps 4 --updates 1
 ```
 
 如果这些命令能跑通，说明 Python 环境、子模块和基础训练依赖已经可用。
+
+如果你是在修改项目代码，可以额外运行开发者测试：
+
+```powershell
+pytest -q
+```
 
 ## 常见问题
 
