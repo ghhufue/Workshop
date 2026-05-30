@@ -73,12 +73,6 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\.venv\Scripts\Activate.ps1
 ```
 
-升级基础安装工具：
-
-```powershell
-python -m pip install --upgrade pip setuptools wheel
-```
-
 ## 4. 安装项目依赖
 
 本项目只需要仓库根目录下这一个虚拟环境。确认当前目录是 `Workshop`，并且虚拟环境已经激活后，运行一次：
