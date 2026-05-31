@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>五子棋 AI 训练与博弈 Workshop</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css">
   <style>
     :root {
       --theme-color: #62a8ff;
@@ -39,7 +40,7 @@
       color: #f8fafc;
     }
 
-    markdown-section code {
+    .markdown-section code {
       border-radius: 4px;
     }
 
@@ -148,6 +149,16 @@
       color: inherit;
     }
 
+    .katex {
+      color: var(--text);
+    }
+
+    .katex-display {
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 0.35rem 0;
+    }
+
     ::selection {
       background: rgba(98, 168, 255, 0.35);
     }
@@ -176,6 +187,9 @@
       }
     };
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify-katex@2.0.2/dist/docsify-katex.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/docsify@4"></script>
   <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/docsify-copy-code@2"></script>

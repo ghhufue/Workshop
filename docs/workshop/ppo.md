@@ -31,9 +31,9 @@ gomoku_ai/model/network.py
 
 `Value` 是 Critic 对当前状态的长期回报估计：
 
-```text
-V(s) = 从状态 s 开始，未来大概能拿到多少回报
-```
+$$
+V(s) = \text{从状态 } s \text{ 开始，未来大概能拿到多少回报}
+$$
 
 如果当前局面本来就很有利，那么赢棋不一定说明某一步特别优秀。如果当前局面很差，但某一步让局面明显改善，即使最后还是输了，这一步也可能值得提高概率。
 
@@ -50,9 +50,9 @@ V(s) = 从状态 s 开始，未来大概能拿到多少回报
 
 Advantage 衡量某个动作比预期好多少：
 
-```text
-Advantage = Return - Value
-```
+$$
+\text{Advantage} = \text{Return} - \text{Value}
+$$
 
 | Advantage | 含义 | 更新方向 |
 |---|---|---|
@@ -60,14 +60,23 @@ Advantage = Return - Value
 | 小于 0 | 结果比 Critic 预期差 | 降低动作概率 |
 | 接近 0 | 和预期差不多 | 不做大幅更新 |
 
-这回答了前面的问题：不能只根据 reward 正负更新参数，因为 reward 不知道“这个状态本来有多好”，也不知道“这个动作是否超出预期”。
+Advantage 的作用不是单纯给训练日志多一个指标，而是直接决定策略更新：
+
+- **方向**：advantage 为正时，提高这个动作的概率；为负时，降低这个动作的概率。
+- **强度**：advantage 绝对值越大，说明这个动作越明显地好于或差于预期，更新力度也越大。
+- **归因**：它把“局面本来就好”与“这个动作真的有贡献”分开，避免把强局面里的普通动作也全部当成好动作。
+
+因此，Policy Head 真正学习的不是“reward 是正还是负”，而是“在这个状态下，刚才这个动作是否比 Critic 的预期更好”。这回答了前面的问题：不能只根据 reward 正负更新参数，因为 reward 不知道“这个状态本来有多好”，也不知道“这个动作是否超出预期”。
 
 当前实现使用 GAE 计算 advantage：
 
-```text
-delta_t = reward_t + gamma * value_{t+1} - value_t
-advantage_t = delta_t + gamma * lambda * advantage_{t+1}
-```
+$$
+\delta_t = r_t + \gamma V_{t+1} - V_t
+$$
+
+$$
+A_t = \delta_t + \gamma \lambda A_{t+1}
+$$
 
 训练前还会标准化 advantage，减少不同 rollout 之间尺度差异带来的波动。
 
@@ -121,7 +130,7 @@ done
 value
 ```
 
-这些数据构成 rollout。之后 PPO 使用这批 rollout 训练若干轮。
+这些数据构成 rollout。采样结束后，PPO 会根据 `reward`、`done` 和 `value` 反向计算每一步的 `return` 与 `advantage`，再用同一批样本训练若干轮。
 
 ## 为什么需要 PPO Clip
 
@@ -129,33 +138,33 @@ value
 
 它比较同一个动作在新旧策略下的概率：
 
-```text
-ratio = exp(new_log_prob - old_log_prob)
-```
+$$
+\text{ratio} = \exp(\text{new\_log\_prob} - \text{old\_log\_prob})
+$$
 
 然后把变化限制在一个范围内：
 
-```text
-clipped_ratio = clamp(ratio, 1 - clip_range, 1 + clip_range)
-```
+$$
+\text{clipped\_ratio} = \operatorname{clamp}(\text{ratio}, 1 - \text{clip\_range}, 1 + \text{clip\_range})
+$$
 
-直觉上，PPO 允许策略变好，但不允许一次改得太猛。
+直觉上，PPO 允许策略变好，但不允许一次改得太猛。这里要注意：Clip 不判断动作好坏，动作好坏已经由 advantage 给出；Clip 只负责限制“根据这个 advantage 更新策略”时迈出的步子有多大。
 
 ## PPO Loss
 
 当前实现的总损失：
 
-```text
-loss = policy_loss
-     + value_coef * value_loss
-     - entropy_coef * entropy
-```
+$$
+\text{loss} = \text{policy\_loss} + \text{value\_coef} \cdot \text{value\_loss} - \text{entropy\_coef} \cdot \text{entropy}
+$$
 
 | 项 | 作用 |
 |---|---|
 | `policy_loss` | 让高 advantage 动作概率上升 |
 | `value_loss` | 让 Critic 更准确 |
 | `entropy` | 保持探索，防止过早固定 |
+
+其中 `policy_loss` 会把新旧策略概率比 `ratio` 和 advantage 相乘。这样一来，同样是提高某个动作概率，只有 advantage 明显为正的动作才会被强烈鼓励；advantage 接近 0 的动作即使出现过，也不会推动策略大幅改变。
 
 默认关键参数：
 
@@ -173,7 +182,7 @@ PPO 的核心不是“赢了就全鼓励，输了就全惩罚”，而是：
 
 ```text
 用 Value 估计预期
-用 Advantage 判断动作好坏
+用 Advantage 给策略更新定方向和强度
 用 Clip 控制更新幅度
 用 Entropy 保留探索
 ```

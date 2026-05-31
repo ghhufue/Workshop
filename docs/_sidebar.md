@@ -10,6 +10,8 @@
   * [PPO 算法](/workshop/ppo)
   * [五子棋建模与训练阶段](/workshop/gomoku-rl)
   * [训练后期与评估](/workshop/training-evaluation)
+
+* 现场实现五子棋 AI
   * [现场实现五子棋 AI](/workshop/build-your-own-ai)
 
 * 对战演示

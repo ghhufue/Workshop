@@ -12,7 +12,7 @@
 
 ## 你会经历什么
 
-强化学习基础 → PPO 算法 → 五子棋环境建模 → 终局奖励与稀疏反馈 → Action Mask → 人工棋形奖励 → 奖励退火 → 混合对手与历史模型对手 → 评估与可视化 → **现场实现自己的五子棋 AI**
+强化学习基础 → PPO 算法 → 五子棋环境建模 → 终局奖励与稀疏反馈 → Action Mask → 人工棋形奖励 → 奖励退火 → 混合对手与历史模型对手 → 评估与可视化
 
 对应训练阶段：
 
@@ -25,7 +25,18 @@
 | V4 | 为什么人工奖励不能一直很强 |
 | V5 | 为什么不能只和一种 Bot 训练 |
 | V6 | 历史 checkpoint 对手有什么作用 |
-| 现场对弈 | 实现一个能接入平台的五子棋 AI |
+
+## 现场实现五子棋 AI
+
+训练阶段之后，现场对弈环节会实现一个能接入平台的五子棋 AI。这个环节不训练神经网络，而是按统一协议写一个落子程序，让它进入 Godot 对局平台参与博弈。
+
+## 参考思路
+
+- 可以直接使用 V1 到 V5 的训练脚本训练自己的模型，再把训练出的 checkpoint 接入对局平台。
+- 也可以完全不训练模型，直接写纯逻辑 AI，例如棋形打分、规则搜索、Minimax 或 Alpha-Beta 剪枝搜索。
+- 训练时可修改训练轮数、并行环境数、学习率、batch size、模型规模、对手池、奖励模式、棋形 reward、action mask、历史 checkpoint 对手等配置。
+
+详细说明见 [docs/workshop/build-your-own-ai.md](docs/workshop/build-your-own-ai.md)。
 
 ## 快速开始
 
@@ -125,7 +136,7 @@ for line in sys.stdin:
 - **PPO 算法**：[docs/workshop/ppo.md](docs/workshop/ppo.md)
 - **五子棋训练阶段**：[docs/workshop/gomoku-rl.md](docs/workshop/gomoku-rl.md)
 - **训练后期与评估**：[docs/workshop/training-evaluation.md](docs/workshop/training-evaluation.md)
-- **现场实现 AI**：[docs/workshop/build-your-own-ai.md](docs/workshop/build-your-own-ai.md)
+- **现场实现五子棋 AI**：[docs/workshop/build-your-own-ai.md](docs/workshop/build-your-own-ai.md)
 - **演示界面说明**：[docs/guide/godot-client.md](docs/guide/godot-client.md)
 
 ## 可以跳过什么

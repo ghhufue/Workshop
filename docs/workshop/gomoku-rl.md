@@ -147,9 +147,9 @@ V3 开始使用 C++ 后端提供棋形奖励：
 
 总奖励：
 
-```text
-total_reward = terminal_reward + shape_alpha * shape_reward
-```
+$$
+\text{total\_reward} = \text{terminal\_reward} + \text{shape\_alpha} \cdot \text{shape\_reward}
+$$
 
 `shape_reward` 来自 `configs/reward.toml`，包括：
 
