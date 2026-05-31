@@ -188,7 +188,19 @@ reward_driven_medium: 40
 可以用 policy viewer 看模型实际在想什么：
 
 ```powershell
+python gomoku_ai/tools/policy_viewer.py
+```
+
+启动后可以在 GUI 里选择 checkpoint 和 Bot。也可以用参数直接加载：
+
+```powershell
 python gomoku_ai/tools/policy_viewer.py --checkpoint runs/v3_shaped/<run>/final_model.pt --bot classic_rule
+```
+
+如果想自动加载 `runs/` 下最新的 checkpoint，可以使用：
+
+```powershell
+python gomoku_ai/tools/policy_viewer.py --latest
 ```
 
 它会显示策略概率热力图，并让你逐步查看模型和 Bot 的对局。
